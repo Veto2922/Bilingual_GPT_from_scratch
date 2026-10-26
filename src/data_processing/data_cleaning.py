@@ -33,40 +33,6 @@ import re
 from tokenizers import Regex
 from tokenizers.normalizers import NFC, Replace, Sequence
 
-# ============================================================
-# TYPE B — lightweight, embeddable normalization
-# ============================================================
-# We build the normalization as tokenizer components so the *exact same*
-# transformation can be (a) embedded in the tokenizer and (b) reused as a
-# plain Python function. There is only one definition, so they cannot drift.
-#
-# Arabic normalization decisions (each is a real trade-off):
-#   • remove tashkeel (diacritics) + tatweel  → collapses spelling variants
-#   • unify alef  أ إ آ → ا                    → fewer variants, small quality cost
-#   • alef maqsura ى → ي                       → common, consistent
-#   • we deliberately KEEP ta-marbuta (ة)      → dropping it would stop the model
-#                                                from ever generating ة (bad output)
-
-def build_normalizer():
-
-    return Sequence([
-        NFC(),
-        Replace(Regex( r"[\u064B-\u0652\u0640]"), "" ),
-        Replace("أ", "ا"),
-        Replace("إ", "ا"),
-        Replace("آ", "ا"),
-        Replace("ى", "ي"),   
-        Replace(Regex(r"[ \t]+"), " "),  # collapse spaces/tabs (keep newlines)
-    ])
-
-_NORMALIZER = build_normalizer()
-
-def normalize_text(text):
-    """
-    Lightweight normalization for a single string.
-    """
-
-    return _NORMALIZER.normalize_str(text)
 
 
 # ============================================================
@@ -107,3 +73,101 @@ _CATEGORY_LINE_RE = re.compile(r"(?m)^[ \t]*(?:تصنيف|بوابة|Category|Po
 
 # A section body with fewer than this many words is considered empty/sparse.
 MIN_SECTION_WORDS = 8
+
+
+def _norm_title(title):
+    """Normalize a heading for blocklist comparison (AR + EN aware)."""
+    t = title.strip().lower()
+    t = re.sub(r"[\u064B-\u0652\u0640]", "", t)
+
+    t = (t.replace("أ", "ا").replace("إ", "ا").replace("آ", "ا")
+              .replace("ى", "ي").replace("ة", "ه"))
+    return re.sub(r"\s+", " ", t).strip()
+
+
+
+def split_into_sections(text):
+    """
+    Split an article chunk into (title, body) sections.
+
+    Both heading styles are unified to markdown first, then we walk the lines.
+    The text before the first heading is the intro section (title = "").
+    """
+
+    text = _MEDIAWIKI_HEADING_RE.sub(r"## \1", text) 
+
+    sections = []
+    title, body_lines = "", []
+
+    for line in text.split("\n"):
+        m = _MARKDOWN_HEADING_RE.match(line)
+        if m:
+            sections.append((title, "\n".join(body_lines)))
+            title, body_lines = m.group(1).strip(), []
+        else:
+            body_lines.append(line)
+    sections.append((title, "\n".join(body_lines)))
+    return sections
+
+
+
+def _dedupe_consecutive_lines(text):
+    """Remove immediately-repeated lines (raw chunks duplicate titles/headers)."""
+    out, prev = [], None
+    for line in text.split("\n"):
+        stripped = line.strip()
+        if stripped and stripped == prev:
+            continue
+        out.append(line)
+        prev = stripped
+    return "\n".join(out)
+
+    
+def prepare_document(text, min_section_words=MIN_SECTION_WORDS):
+    """
+    TYPE A: full one-time cleanup of a single raw article chunk.
+
+    Steps:
+      1. delete leftover citation-template remnants
+      2. delete category / portal link lines
+      3. split into sections; drop nav/reference sections and sparse sections
+      4. de-duplicate repeated lines, collapse whitespace
+    Returns the cleaned text (may be empty if nothing survived).
+    """
+
+    text = _TEMPLATE_RE.sub("", text)
+    text = _CATEGORY_LINE_RE.sub("", text)
+
+    kept = []
+    sections = split_into_sections(text)
+
+    for title, body in sections:
+
+        if _norm_title(title) in _NAV_SECTION_TITLES:
+            continue
+
+        if len(body.split()) < min_section_words:
+            continue
+
+        block = f"{title}\n{body}" if title else body
+        kept.append(block)
+
+    cleaned_text = "\n\n".join(kept)
+    cleaned_text = _dedupe_consecutive_lines(cleaned_text)
+
+    cleaned_text = re.sub(r"[ \t]+", " ", cleaned_text)
+    cleaned_text = re.sub(r"\n{3,}", "\n\n", cleaned_text)
+
+    return cleaned_text.strip()
+
+
+def clean_data_frame(df, text_col="text", min_chars=40):
+
+    new_df = df.copy()
+
+    new_df["orig_len"] = new_df[text_col].str.len()
+
+    new_df[text_col] = new_df[text_col].map(prepare_document)
+    new_df = new_df[ new_df[text_col].str.len() >= min_chars ].reset_index(drop=True)
+
+    return new_df

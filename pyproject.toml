@@ -23,7 +23,7 @@ dependencies = [
 ]
 
 [tool.setuptools.packages.find]
-include = ["bilingual_gpt_from_scratch*"]
+include = ["src*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
