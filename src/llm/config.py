@@ -15,6 +15,27 @@ class Modelconfig:
     
     qkv_bias: bool = False
 
+    pad_id:int = 0
+
+
+    tie_weights: bool = True
     @property
     def d_k(self):
         return self.d_model // self.n_heads
+
+
+    @classmethod
+    def GPT_Small(cls) -> "Modelconfig":
+        return cls(
+            vocab_size=32_000,
+            d_model=512,
+            d_ff=4 * 512,
+            max_seq_len=1024,
+            dropout=0.1,
+            n_heads=8,
+            n_layer=8,
+            qkv_bias=False,
+            pad_id=0,
+            tie_weights=True
+        )
+    
