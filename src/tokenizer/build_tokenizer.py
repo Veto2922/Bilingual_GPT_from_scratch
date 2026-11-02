@@ -16,10 +16,7 @@ data_DIR = PROJECT_ROOT / "outputs" / "data"
 tokenizer_DIR = PROJECT_ROOT / "outputs" / "tokenizer"
 
 CLEAN_PATHS = [
-    data_DIR / "cleaned" / "phase1_train_clean.parquet",
-    # data_DIR / "cleaned" / "phase1_eval_clean.parquet",
-    data_DIR / "cleaned" / "phase2_train_clean.parquet",
-    # data_DIR / "cleaned" / "phase2_eval_clean.parquet",
+    data_DIR / "tokenizer_corpus.parquet",
 ]
 
 OUTPUT_PATH = tokenizer_DIR / "tokenizer.json"
@@ -119,3 +116,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+
+

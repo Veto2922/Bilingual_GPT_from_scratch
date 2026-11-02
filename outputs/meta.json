@@ -1,0 +1,14 @@
+{
+  "repo": "bakrianoo/jabarti-llm-dataset",
+  "dtype": "uint16",
+  "vocab_size": 32000,
+  "shuffle_seed": 1234,
+  "train": {
+    "documents": 500000,
+    "tokens": 47860748
+  },
+  "eval": {
+    "documents": 114259,
+    "tokens": 10869857
+  }
+}

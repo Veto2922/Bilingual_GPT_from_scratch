@@ -50,6 +50,17 @@ class Tokenizer:
 
     def encode(self, text: str, add_special_tokens: bool = False) -> list[int]:
         return self._tokenizer.encode(text, add_special_tokens=add_special_tokens).ids
+    
+    def encode_batch(self, texts: list[str], add_special_tokens: bool = False) -> list[list[int]]:
+        encodings = self._tokenizer.encode_batch(
+            texts, 
+            add_special_tokens= add_special_tokens
+        )
+
+        return [
+            encode.ids
+            for encode in encodings
+        ]
 
     def decode(self, ids: list[int], skip_special_tokens: bool = True) -> str:
         return self._tokenizer.decode(ids, skip_special_tokens=skip_special_tokens)
