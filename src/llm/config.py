@@ -1,5 +1,9 @@
 from dataclasses import dataclass
 
+from datetime import datetime
+import math
+import random
+
 
 @dataclass
 class Modelconfig:
@@ -24,19 +28,12 @@ class Modelconfig:
         return self.d_model // self.n_heads
 
     @classmethod
-    def GPT_Small(cls) -> "Modelconfig":
-        return cls(
-            vocab_size=32_000,
-            d_model=512,
-            d_ff=4 * 512,
-            max_seq_len=1024,
-            dropout=0.1,
-            n_heads=8,
-            n_layer=8,
-            qkv_bias=False,
-            pad_id=0,
-            tie_weights=True,
-        )
+    def main_model(cls):
+        return cls(d_model=512, n_heads=8, n_layers=8, dropout=0.05)
+
+    @classmethod
+    def tiny(cls):
+        return cls(d_model=128, n_heads=4, n_layers=2, max_seq_len=256)
 
 
 @dataclass
@@ -116,3 +113,14 @@ class TrainingConfig:
         "فاز الفريق بالبطولة بعد",  # sports
         "The scientific study found that",  # science
     )
+
+
+def unique_run_name(base: str) -> str:
+    stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+    return f"run-{random.randint(0, 9999):04d}-{base}-{stamp}"
+
+
+def steps_for_epochs(num_examples, batch_size, accumulation_steps, epochs):
+    effective_batch = batch_size * accumulation_steps
+    steps_per_epoch = math.ceil(num_examples / effective_batch)
+    return max(1, math.ceil(epochs * steps_per_epoch))

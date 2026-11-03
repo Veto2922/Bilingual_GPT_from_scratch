@@ -7,13 +7,13 @@ import trackio
 
 class Tracker:
     def __init__(
-        self, trainig_config: TrainingConfig, model_config: Modelconfig = None
+        self, training_config: TrainingConfig, model_config: Modelconfig = None
     ):
-        self.run_name = trainig_config.run_name
-        self.project = trainig_config.project
+        self.run_name = training_config.run_name
+        self.project = training_config.project
         self.run_id = None
 
-        run_config = {"trainig": asdict(trainig_config)}
+        run_config = {"trainig": asdict(training_config)}
 
         if model_config is not None:
             run_config["model"] = asdict(model_config)

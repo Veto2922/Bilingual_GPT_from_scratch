@@ -78,7 +78,7 @@ class Trainer:
         self.scheduler = cosine_with_warmup(self.optimizer, config)
 
         self.sample_config = GenerationConfig(
-            max_new_tokens=config.sample_max_new_tokens, seep=config.seed
+            max_new_tokens=config.sample_max_new_tokens, seed=config.seed
         )
 
     def _build_optimizer(self):
