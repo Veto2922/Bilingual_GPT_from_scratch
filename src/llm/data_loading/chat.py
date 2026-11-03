@@ -16,10 +16,20 @@ DEFAULT_SYSTEM = {
 ARABIC_LETTERS = range(0x0600, 0x0700)
 
 
-def format_chat(tokenizer, question, answer=None, system=None):
+def is_arabic(text: str) -> bool:
+    """Check if the text contains any Arabic characters."""
+    return any(ord(char) in ARABIC_LETTERS for char in text)
+
+
+def system_for(text: str) -> str:
+    """Return the appropriate system prompt based on detected language."""
+    return DEFAULT_SYSTEM["ar"] if is_arabic(text) else DEFAULT_SYSTEM["en"]
+
+
+def format_chat(tokenizer, question: str, answer: str | None = None, system: str | None = None):
     """Build one conversation, and say which tokens the model is graded on.
 
-    The layout uses the role tokens ch03 set aside:
+    The layout uses the role tokens set aside:
 
         [SYS] system [USER] question [ASST] answer [EOS]
 

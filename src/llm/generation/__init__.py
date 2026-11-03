@@ -1,5 +1,5 @@
-from src.generation.generate import generate, generate_ids
-from src.generation.sampling import (
+from src.llm.generation.generate import generate, generate_ids
+from src.llm.generation.sampling import (
     apply_temperature,
     greedy,
     sample,

@@ -2,11 +2,11 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-import math 
-
+import math
 
 from src.llm.model.GPT_block import GPTBlock
 from src.llm.model.embedding import InputEmbeddings
+
 
 class GPTModel(nn.Module):
     def __init__(self, config):
@@ -14,9 +14,7 @@ class GPTModel(nn.Module):
         self.config = config
         self.w_embeddings = InputEmbeddings(config)
 
-        self.blocks = nn.ModuleList(
-                GPTBlock(config) for _ in range(config.n_layer) 
-        )
+        self.blocks = nn.ModuleList(GPTBlock(config) for _ in range(config.n_layer))
 
         self.ln_final = nn.LayerNorm(config.d_model)
         self.lm_head = nn.Linear(config.d_model, config.vocab_size, bias=False)
@@ -26,10 +24,6 @@ class GPTModel(nn.Module):
 
         self.apply(self._init_weights)
         self._scale_residual_projections()
-
-    
-
-    
 
     def forward(
         self,
@@ -48,23 +42,21 @@ class GPTModel(nn.Module):
             x, updated_cache = block(x, use_cache=use_cache, kv_cache=current_cache)
             if use_cache:
                 updated_caches.append(updated_cache)
-        
+
         x = self.ln_final(x)
 
         logits = self.lm_head(x)
-        
+
         if target_ids is None:
             return logits, None, updated_caches
-        
+
         loss = F.cross_entropy(
-            logits.reshape(
-                -1, logits.size(-1)
-            ), 
+            logits.reshape(-1, logits.size(-1)),
             target_ids.reshape(-1),
             ignore_index=self.config.pad_id,
         )
 
-        return logits,  loss , updated_caches
+        return logits, loss, updated_caches
 
     def _init_weights(self, module: nn.Module) -> None:
         """GPT-2's initialisation: normal(0, 0.02), zeroed biases.
@@ -93,14 +85,16 @@ class GPTModel(nn.Module):
                 block.ff.fc2.weight.div_(scale)
 
     def num_parameters(self, non_embedding: bool = False) -> int:
-
         n = sum(p.numel() for p in self.parameters() if p.requires_grad)
         if non_embedding:
             n -= self.w_embeddings.token_embedding.weight.numel()
             n -= self.w_embeddings.position_embedding.weight.numel()
 
         return n
-    
+
     def config_str(self) -> str:
         return f"d_model={self.config.d_model} d_ff={self.config.d_ff} n_heads={self.config.n_heads} n_layers={self.config.n_layer} vocab_size={self.config.vocab_size} max_seq_len={self.config.max_seq_len}"
 
+
+# Alias for backwards compatibility and concise naming
+GPT = GPTModel

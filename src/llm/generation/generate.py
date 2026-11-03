@@ -7,13 +7,14 @@ wastes almost all of the work, which is what the KV cache fixes.
 """
 
 import torch
+import torch.nn as nn
 
-from src.generation.sampling import sample
-from src.data_loading.chat import format_chat, system_for
+from src.llm.generation.sampling import sample
+from src.llm.data_loading.chat import format_chat, system_for
 
 
 @torch.no_grad()
-def generate_ids(model, prompt_ids, config, eos_id=None, device=None):
+def generate_ids(model: nn.Module, prompt_ids: list[int], config, eos_id: int | None = None, device=None) -> list[int]:
     """Continue prompt_ids, returning prompt and continuation together.
 
     One sequence at a time. Batched generation needs left-padding and an
@@ -58,21 +59,17 @@ def generate_ids(model, prompt_ids, config, eos_id=None, device=None):
 
     return ids[0].tolist()
 
-    # ids.tolist()      →  [[2, 11, 12, 13, 99]]   nested: a list of sequences
-    # ids[0].tolist()   →   [2, 11, 12, 13, 99]    flat: one sequence of ints
 
-
-def generate(model, tokenizer, prompt, config, device=None, chat: bool = False):
+def generate(model: nn.Module, tokenizer, prompt: str, config, device=None, chat: bool = False) -> str:
     """Continue a prompt, returning only the newly generated text.
 
     The prompt is prefixed with [BOS] because training wrapped every document
-    that way (ch08); a model given a bare first token is being asked to
+    that way; a model given a bare first token is being asked to
     continue from a state it never saw.
 
     chat=True treats the prompt as a question and wraps it in the same
     [SYS] ... [USER] ... [ASST] template finetuning used, for the same reason.
     """
-
     if not chat:
         prompt_ids = [tokenizer.BOS] + tokenizer.encode(prompt)
     else:
