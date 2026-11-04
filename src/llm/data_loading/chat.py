@@ -26,7 +26,9 @@ def system_for(text: str) -> str:
     return DEFAULT_SYSTEM["ar"] if is_arabic(text) else DEFAULT_SYSTEM["en"]
 
 
-def format_chat(tokenizer, question: str, answer: str | None = None, system: str | None = None):
+def format_chat(
+    tokenizer, question: str, answer: str | None = None, system: str | None = None
+):
     """Build one conversation, and say which tokens the model is graded on.
 
     The layout uses the role tokens set aside:

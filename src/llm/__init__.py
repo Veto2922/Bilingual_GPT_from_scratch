@@ -8,6 +8,7 @@ from src.llm.tokenizer import Tokenizer
 from src.llm.training.checkpoint import load_checkpoint, save_checkpoint
 from src.llm.training.tracking import Tracker
 from src.llm.training.trainer import Trainer
+from src.llm.model import apply_lora, merge_lora, LoRALinear
 
 # Backward compatibility / aliases
 GPT = GPTModel
@@ -29,4 +30,7 @@ __all__ = [
     "collate_fn",
     "load_checkpoint",
     "save_checkpoint",
+    "apply_lora",
+    "merge_lora",
+    "LoRALinear",
 ]
