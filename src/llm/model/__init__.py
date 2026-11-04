@@ -3,7 +3,7 @@ from src.llm.model.GPT_block import GPTBlock
 from src.llm.model.embedding import InputEmbeddings
 from src.llm.model.feedforward import FeedForward
 from src.llm.model.GPT_model import GPT, GPTModel
-# from src.llm.model.lora import LoRALinear, apply_lora, merge_lora
+from src.llm.model.lora import LoRALinear, apply_lora, merge_lora
 
 __all__ = [
     "GPT",
@@ -12,7 +12,7 @@ __all__ = [
     "InputEmbeddings",
     "MultiHeadAttention",
     "GPTBlock",
-    # "LoRALinear",
-    # "apply_lora",
-    # "merge_lora",
+    "LoRALinear",
+    "apply_lora",
+    "merge_lora",
 ]
