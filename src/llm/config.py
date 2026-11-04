@@ -47,6 +47,15 @@ class Modelconfig:
         self.pad_id = pad_id
         self.tie_weights = tie_weights
 
+    def __post_init__(self):
+        if self.d_ff is None:
+            self.d_ff = 4 * self.d_model
+
+        if self.d_model % self.n_heads != 0:
+            raise ValueError(
+                f"d_model={self.d_model} is not divisible by n_heads={self.n_heads}"
+            )
+
     @property
     def d_k(self) -> int:
         """Attention head dimension."""
